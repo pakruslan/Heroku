@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework import permissions as p, viewsets
+from rest_framework import permissions as p, viewsets, generics
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
@@ -9,8 +9,8 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer, CreateUpdateProductSerializer
+from .models import Product, Category,Comment
+from .serializers import ProductSerializer, CategorySerializer, CreateUpdateProductSerializer,CommentSerializer
 from .filters import ProductFilter
 
 
@@ -93,3 +93,14 @@ class ProductViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(Q(title__icontains=q) | Q(description__icontains=q))
         serializer = ProductSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+class CommentCreate(generics.CreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [p.IsAuthenticated]
+
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
