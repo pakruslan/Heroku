@@ -32,6 +32,8 @@ class ProductSerializer(serializers.ModelSerializer):
         return ''
 
 
+
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['image'] = self._get_image_url(instance)

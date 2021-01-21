@@ -1,11 +1,17 @@
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework import permissions as p, viewsets, permissions
+from rest_framework import permissions as p, viewsets
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer, CreateUpdateProductSerializer
+from .filters import ProductFilter
 
 
 # @api_view(['GET'])
@@ -33,21 +39,25 @@ from .serializers import ProductSerializer, CategorySerializer, CreateUpdateProd
 #     serializer_class = ProductSerializer
 
 
-class CreateProduct(CreateAPIView):
-    queryset = Product.objects.all()
-    permission_classes = [permissions.IsAdminUser]
-    serializer_class =  CreateUpdateProductSerializer
+# class CreateProduct(CreateAPIView):
+#     queryset = Product.objects.all()
+#     permission_classes = [permissions.IsAdminUser]
+#     serializer_class =  CreateUpdateProductSerializer
 
 
-class UpdateProduct(UpdateAPIView):
-    queryset = Product.objects.all()
-    permissions_classes = [permissions.IsAdminUser]
-    serializer_class = CreateUpdateProductSerializer
+# class UpdateProduct(UpdateAPIView):
+#     queryset = Product.objects.all()
+#     permissions_classes = [permissions.IsAdminUser]
+#     serializer_class = CreateUpdateProductSerializer
 
 
 # class DeleteProduct(DestroyAPIView):
 #     queryset = Product.objects.all()
 #     permissions_classes = [permissions.IsAdminUser]
+
+
+class MyPagination(PageNumberPagination):
+    page_size = 1
 
 
 class CategoriesList(ListAPIView):
@@ -57,6 +67,10 @@ class CategoriesList(ListAPIView):
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
+    pagination_class = MyPagination
+    filter_backends = [DjangoFilterBackend]
+    # filterset_backends = ['title']
+    filter_class = ProductFilter
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -65,7 +79,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         # if self.action == 'list' or self.action == 'retrieve':
-        if self.action in ['list', 'retreiver']:
+        if self.action in ['list', 'retreiver', 'search']:
             permissions = [p.AllowAny]
         else:
             permissions = [p.IsAdminUser]

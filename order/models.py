@@ -31,4 +31,3 @@ class Order(models.Model):
 
 
 
-
